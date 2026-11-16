@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- 安全鎖：只允許載入本站檔案，禁止把任何資料傳到外部網站 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'">
+  <title>諸行漸次止息</title>
+  <meta name="theme-color" content="#050a1c">
+  <!-- 加到手機主畫面當 App 用（PWA） -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="諸行漸次止息">
+  <!-- Tailwind（已下載到 vendor/，不連外部網站） -->
+  <script src="vendor/tailwind-3.4.17.js"></script>
+  <script>
+    // 深藍星空配色（night-950 最深 → night-600 最亮）
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            night: { 950: '#050a1c', 900: '#0b1433', 800: '#14204a', 700: '#22326a', 600: '#33478c' }
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Lucide Icons（固定版本） -->
+  <script src="vendor/lucide-0.460.0.min.js"></script>
+  <style>
+    :root { background: #050a1c; color-scheme: dark; }
+    html, body { height: 100%; }
+    /* 手機頂端安全區塗上背景色，避免內容捲到系統列下 */
+    body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 40; background: #050a1c; }
+    .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    .sticky-top { top: env(safe-area-inset-top, 0px); }
+    .fab { right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+    body {
+      color: #f1f5f9;
+      background:
+        radial-gradient(ellipse 120% 60% at 50% 0%, rgba(56, 89, 190, 0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 50% at 85% 100%, rgba(99, 70, 190, 0.22) 0%, transparent 60%),
+        linear-gradient(180deg, #0b1638 0%, #070e26 50%, #050a1c 100%);
+      background-attachment: fixed;
+    }
+    .starfield { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .starfield::before, .starfield::after { content: ''; position: absolute; inset: 0; background-repeat: repeat; }
+    .starfield::before {
+      background-image:
+        radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.9), transparent 60%),
+        radial-gradient(1px 1px at 33% 72%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(1px 1px at 58% 34%, rgba(255,255,255,0.8), transparent 60%),
+        radial-gradient(1px 1px at 76% 86%, rgba(255,255,255,0.6), transparent 60%),
+        radial-gradient(1px 1px at 89% 12%, rgba(255,255,255,0.9), transparent 60%),
+        radial-gradient(1px 1px at 46% 92%, rgba(255,255,255,0.5), transparent 60%),
+        radial-gradient(1px 1px at 5% 55%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(1px 1px at 67% 58%, rgba(255,255,255,0.6), transparent 60%);
+      background-size: 240px 240px;
+      animation: twinkle 6s ease-in-out infinite;
+    }
+    .starfield::after {
+      background-image:
+        radial-gradient(1.5px 1.5px at 22% 40%, rgba(191,219,254,0.95), transparent 60%),
+        radial-gradient(2px 2px at 71% 22%, rgba(255,255,255,0.9), transparent 60%),
+        radial-gradient(1.5px 1.5px at 84% 64%, rgba(253,230,138,0.8), transparent 60%),
+        radial-gradient(1.5px 1.5px at 40% 8%, rgba(255,255,255,0.8), transparent 60%),
+        radial-gradient(2px 2px at 9% 88%, rgba(191,219,254,0.8), transparent 60%);
+      background-size: 520px 520px;
+      animation: twinkle 9s ease-in-out infinite reverse;
+    }
+    @keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+    /* 記憶球發光 */
+    .glow-red   { box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
+    .glow-blue  { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
+    .glow-faded { box-shadow: 0 0 12px rgba(203, 213, 225, 0.18); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .starfield::before, .starfield::after { animation: none; }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body>
+<div class="min-h-full text-slate-100 flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+  <div class="starfield" aria-hidden="true"></div>
+
+  <!-- 頂部標題列 -->
+  <header class="gutter py-4 bg-night-950/60 border-b border-night-700/60 backdrop-blur-md sticky sticky-top z-30 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 rounded-xl bg-night-800/80 border border-night-600/70 text-amber-400">
+        <i data-lucide="brain" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-wide text-slate-100">諸行漸次止息</h1>
+        <p class="text-xs text-slate-300">趨近・遠離・平安 記憶庫</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleView('grid')" id="btn-grid" aria-label="格狀檢視" class="p-2 rounded-lg bg-night-800 text-slate-100 border border-night-600 transition">
+        <i data-lucide="layout-grid" class="w-5 h-5"></i>
+      </button>
+      <button onclick="toggleView('shelf')" id="btn-shelf" aria-label="清單檢視" class="p-2 rounded-lg bg-transparent text-slate-300 border border-transparent transition">
+        <i data-lucide="list" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="gutter relative z-10 flex-1 py-5 space-y-5 max-w-2xl mx-auto w-full pb-28">
+    <!-- 儲存狀態 -->
+    <p id="sync-status" class="text-[11px] text-slate-400 flex items-center gap-1.5 px-1"></p>
+    <!-- 篩選：第一列大類、第二列感受 -->
+    <section class="space-y-3">
+      <div id="zone-bar" class="grid grid-cols-4 p-1 rounded-2xl bg-night-950/70 border border-night-700 text-xs font-bold"></div>
+      <p id="zone-hint" class="hidden text-[11px] text-slate-300 px-1"></p>
+      <div id="feel-bar" class="flex gap-2 text-xs font-semibold"></div>
+    </section>
+
+    <!-- 記憶球列表 -->
+    <section>
+      <div class="flex items-center justify-between mb-3 px-1">
+        <h2 id="section-title" class="text-xs font-semibold tracking-wider text-slate-300">全部記憶 (0)</h2>
+        <span class="text-xs text-slate-300 flex items-center gap-1">
+          <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-amber-400"></i>
+          點擊可投影記憶
+        </span>
+      </div>
+      <div id="memory-container" class="grid grid-cols-4 gap-2 sm:gap-3"></div>
+      <div id="empty-state" class="hidden text-center py-12 text-slate-300 space-y-3">
+        <div class="w-16 h-16 mx-auto rounded-full bg-night-900/70 border border-night-700 flex items-center justify-center text-slate-400">
+          <i data-lucide="circle-dashed" class="w-8 h-8"></i>
+        </div>
+        <p class="text-sm">這個分類目前還沒有記憶球</p>
+        <p class="text-xs text-slate-400">按右下角的 ＋ 開始記錄</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 新增記憶按鈕 -->
+  <button onclick="openModal()" aria-label="新增記憶" class="fab fixed z-40 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold p-4 rounded-full shadow-lg shadow-amber-500/20 active:scale-95 transition flex items-center justify-center">
+    <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+  </button>
+
+  <!-- Modal 1：新增／編輯記憶 -->
+  <div id="add-modal" class="fixed inset-0 bg-night-950/80 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-night-900 border border-night-700 rounded-t-3xl sm:rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-night-700 pb-3">
+        <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <span id="add-modal-icon" class="text-amber-400"><i data-lucide="plus-circle" class="w-5 h-5"></i></span>
+          <span id="add-modal-heading">封存新記憶球</span>
+        </h3>
+        <button onclick="closeModal()" aria-label="關閉" class="text-slate-300 hover:text-white p-1">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <form id="memory-form" onsubmit="saveMemory(event)" class="space-y-4">
+        <div>
+          <label for="memory-title" class="block text-xs font-semibold text-slate-300 mb-2">記憶標題</label>
+          <input id="memory-title" type="text" required maxlength="20" placeholder="例如：第一次見面" class="w-full bg-night-950 border border-night-700 rounded-xl p-3 text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">大類</label>
+          <div id="zone-selector" class="grid grid-cols-3 gap-2"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">感受</label>
+          <div id="feel-selector" class="grid grid-cols-2 gap-2"></div>
+        </div>
+        <div>
+          <label for="memory-text" class="block text-xs font-semibold text-slate-300 mb-2">記憶細節</label>
+          <textarea id="memory-text" rows="4" required placeholder="寫下發生的事情、感受或想法..." class="w-full bg-night-950 border border-night-700 rounded-xl p-3 text-slate-100 placeholder-slate-400 text-sm focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/60 resize-none"></textarea>
+        </div>
+        <button id="submit-btn" type="submit" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl transition text-sm shadow-md shadow-amber-500/20">
+          封存記憶
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2：記憶放映機 -->
+  <div id="view-modal" class="fixed inset-0 bg-night-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-night-900 border border-night-700 rounded-2xl w-full max-w-md p-6 space-y-6 shadow-2xl relative overflow-hidden">
+      <div class="flex items-center justify-between border-b border-night-700 pb-4">
+        <div id="view-badges" class="flex items-center gap-2"></div>
+        <button onclick="closeViewModal()" aria-label="關閉" class="text-slate-300 hover:text-white p-1">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div class="flex justify-center py-4">
+        <div id="view-orb" class="w-24 h-24 rounded-full flex items-center justify-center"></div>
+      </div>
+      <div class="space-y-2 bg-night-950 p-4 rounded-xl border border-night-700/80">
+        <h4 id="view-title" class="text-base font-bold text-slate-100"></h4>
+        <p id="view-text" class="text-sm text-slate-100 leading-relaxed whitespace-pre-wrap"></p>
+        <div class="pt-2 text-[11px] text-slate-300 border-t border-night-700/60">
+          <span id="view-date"></span>
+        </div>
+      </div>
+      <div class="flex space-x-3 pt-2">
+        <button id="btn-delete" onclick="deleteCurrentMemory()" class="flex-1 py-2.5 bg-night-800 hover:bg-red-950/60 hover:text-red-300 hover:border-red-800/60 text-slate-300 text-xs font-semibold rounded-xl border border-night-600 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span id="btn-delete-label">刪除</span>
+        </button>
+        <button onclick="editCurrentMemory()" class="flex-1 py-2.5 bg-night-800 hover:bg-amber-500/15 hover:text-amber-200 hover:border-amber-500/50 text-slate-100 text-xs font-semibold rounded-xl border border-night-600 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="pencil" class="w-4 h-4"></i>
+          編輯
+        </button>
+        <button onclick="closeViewModal()" class="flex-1 py-2.5 bg-night-800 hover:bg-night-700 text-slate-100 text-xs font-semibold rounded-xl border border-night-600 transition flex items-center justify-center gap-1.5">
+          <i data-lucide="x" class="w-4 h-4"></i>
+          關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 第一層：大類（決定球的顏色）=====
+    const ZONES = {
+      approach: {
+        name: '趨近', def: '緊',
+        orbClass: 'bg-red-500 text-slate-950', glowClass: 'glow-red',
+        dotClass: 'bg-red-500',
+        textClass: 'text-red-300',
+        tabActive: 'bg-red-500 text-slate-950 shadow shadow-red-500/30',
+        badge: 'bg-red-500/20 text-red-200 border-red-500/40',
+        pickActive: 'bg-red-500/20 text-red-200 border-red-500/50 ring-2 ring-red-500/60'
+      },
+      distance: {
+        name: '遠離', def: '有距離、放鬆',
+        orbClass: 'bg-blue-500 text-slate-950', glowClass: 'glow-blue',
+        dotClass: 'bg-blue-500',
+        textClass: 'text-blue-300',
+        tabActive: 'bg-blue-500 text-slate-950 shadow shadow-blue-500/30',
+        badge: 'bg-blue-500/20 text-blue-200 border-blue-500/40',
+        pickActive: 'bg-blue-500/20 text-blue-200 border-blue-500/50 ring-2 ring-blue-500/60'
+      },
+      peace: {
+        name: '平安', def: '不會不見，也不會變出來',
+        orbClass: 'bg-transparent border-2 border-dashed border-slate-300/80 text-slate-200', glowClass: 'glow-faded',
+        dotClass: 'border-2 border-dashed border-slate-300',
+        textClass: 'text-slate-200',
+        tabActive: 'bg-transparent text-slate-100 border-2 border-dashed border-slate-300',
+        badge: 'bg-transparent text-slate-200 border-slate-300/60 border-dashed',
+        pickActive: 'bg-slate-300/10 text-slate-100 border-slate-300 border-dashed ring-2 ring-slate-300/40'
+      }
+    };
+    const DEFAULT_ZONE = 'approach';
+
+    // ===== 第二層：感受（決定球上的圖示）=====
+    const FEELS = {
+      comfy:   { name: '舒服',   icon: 'smile' },
+      uncomfy: { name: '不舒服', icon: 'frown' }
+    };
+    const DEFAULT_FEEL = 'comfy';
+
+    // ===== 儲存 =====
+    // 記憶只存在這台裝置的瀏覽器（localStorage），不會上傳到任何地方
+    const STORAGE_KEY = 'songjin_memories'; // 和原版「大腦總部」分開，不共用資料
+    let memories = loadMemories();
+    let zoneFilter = 'all';
+    let feelFilter = 'all';
+    let currentViewMode = 'grid';
+    let selectedZone = DEFAULT_ZONE;
+    let selectedFeel = DEFAULT_FEEL;
+    let activeMemoryId = null;
+    let editingMemoryId = null;
+    let deleteArmed = false;
+
+    function loadMemories() {
+      try {
+        const list = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        return Array.isArray(list) ? list.filter(m => m && m.id) : [];
+      } catch (e) { return []; }
+    }
+    function persistMemories() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(memories)); }
+      catch (e) { /* 無痕模式等情況下可能無法儲存 */ }
+    }
+
+    function setStatus(icon, text, cls) {
+      const el = document.getElementById('sync-status');
+      el.className = `text-[11px] flex items-center gap-1.5 px-1 ${cls || 'text-slate-400'}`;
+      el.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5"></i><span>${text}</span>`;
+      lucide.createIcons();
+    }
+
+    // 請瀏覽器把資料標成「持續保存」，降低被系統自動清掉的機會
+    function showStorageStatus() {
+      setStatus('lock', '記憶只存在這台裝置，不會上傳');
+      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    const zoneOf = m => ZONES[m.zone] || ZONES[DEFAULT_ZONE];
+    const feelOf = m => FEELS[m.feel] || FEELS[DEFAULT_FEEL];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderFilters();
+      renderMemories();
+      lucide.createIcons();
+      showStorageStatus();
+    });
+
+    // ===== 篩選列 =====
+    function renderFilters() {
+      // 第一列：全部／趨近／遠離／平安
+      const tabBase = 'py-2 rounded-xl text-center flex items-center justify-center gap-1.5 transition';
+      let html = `<button onclick="setZoneFilter('all')" class="${tabBase} ${zoneFilter === 'all' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-slate-100'}">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>全部</button>`;
+      Object.entries(ZONES).forEach(([key, z]) => {
+        const active = zoneFilter === key;
+        html += `<button onclick="setZoneFilter('${key}')" class="${tabBase} ${active ? z.tabActive : z.textClass + ' hover:bg-night-800/60'}">
+          <span class="w-3 h-3 rounded-full ${active && key !== 'peace' ? 'bg-slate-950/40' : z.dotClass}"></span>${z.name}</button>`;
+      });
+      document.getElementById('zone-bar').innerHTML = html;
+
+      // 所選大類的定義
+      const hint = document.getElementById('zone-hint');
+      if (zoneFilter === 'all') {
+        hint.classList.add('hidden');
+      } else {
+        const z = ZONES[zoneFilter];
+        hint.innerHTML = `<span class="${z.textClass} font-bold">${z.name}</span>：${z.def}`;
+        hint.classList.remove('hidden');
+      }
+
+      // 第二列：全部／舒服／不舒服
+      const chipBase = 'px-3.5 py-1.5 rounded-full border flex items-center gap-1 transition';
+      const on = 'bg-amber-500/20 text-amber-200 border-amber-500/40';
+      const off = 'bg-night-900/70 text-slate-300 border-night-700 hover:border-night-600 hover:text-slate-100';
+      const allLabel = zoneFilter === 'all' ? '全部' : `全部${ZONES[zoneFilter].name}`;
+      let chips = `<button onclick="setFeelFilter('all')" class="${chipBase} ${feelFilter === 'all' ? on : off}">${allLabel}</button>`;
+      Object.entries(FEELS).forEach(([key, f]) => {
+        chips += `<button onclick="setFeelFilter('${key}')" class="${chipBase} ${feelFilter === key ? on : off}">
+          <i data-lucide="${f.icon}" class="w-3.5 h-3.5"></i>${f.name}</button>`;
+      });
+      document.getElementById('feel-bar').innerHTML = chips;
+      lucide.createIcons();
+    }
+
+    function setZoneFilter(key) { zoneFilter = key; renderFilters(); renderMemories(); }
+    function setFeelFilter(key) { feelFilter = key; renderFilters(); renderMemories(); }
+
+    function toggleView(mode) {
+      currentViewMode = mode;
+      const on  = 'p-2 rounded-lg bg-night-800 text-slate-100 border border-night-600 transition';
+      const off = 'p-2 rounded-lg bg-transparent text-slate-300 border border-transparent transition';
+      document.getElementById('btn-grid').className  = mode === 'grid'  ? on : off;
+      document.getElementById('btn-shelf').className = mode === 'shelf' ? on : off;
+      document.getElementById('memory-container').className = mode === 'grid' ? 'grid grid-cols-4 gap-2 sm:gap-3' : 'space-y-3';
+      renderMemories();
+    }
+
+    function filterTitle() {
+      const parts = [];
+      if (zoneFilter !== 'all') parts.push(ZONES[zoneFilter].name);
+      if (feelFilter !== 'all') parts.push(FEELS[feelFilter].name);
+      return parts.length ? parts.join('・') + ' 記憶' : '全部記憶';
+    }
+
+    // ===== 記憶球列表 =====
+    function renderMemories() {
+      const container = document.getElementById('memory-container');
+      const emptyState = document.getElementById('empty-state');
+      const filtered = memories.filter(m =>
+        (zoneFilter === 'all' || (m.zone || DEFAULT_ZONE) === zoneFilter) &&
+        (feelFilter === 'all' || (m.feel || DEFAULT_FEEL) === feelFilter));
+      document.getElementById('section-title').textContent = `${filterTitle()} (${filtered.length})`;
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      const card = 'bg-night-900/70 backdrop-blur-sm border border-night-700/70 hover:border-night-600 cursor-pointer transition';
+      container.innerHTML = filtered.map(m => {
+        const z = zoneOf(m), f = feelOf(m);
+        const title = escapeHtml(m.title || '未命名記憶');
+        if (currentViewMode === 'grid') {
+          return `
+            <div onclick="openViewModal('${m.id}')" title="${z.name}・${f.name}" class="${card} rounded-xl sm:rounded-2xl px-1.5 py-3 sm:p-3 flex flex-col items-center text-center active:scale-95 space-y-2">
+              <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full ${z.orbClass} ${z.glowClass} flex items-center justify-center">
+                <i data-lucide="${f.icon}" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]"></i>
+              </div>
+              <p class="w-full text-[11px] sm:text-xs text-slate-100 line-clamp-2 font-semibold leading-snug break-words">${title}</p>
+            </div>`;
+        }
+        return `
+          <div onclick="openViewModal('${m.id}')" class="${card} rounded-xl p-3.5 flex items-center space-x-3.5 active:scale-[0.98]">
+            <div class="w-12 h-12 rounded-full ${z.orbClass} ${z.glowClass} flex-shrink-0 flex items-center justify-center">
+              <i data-lucide="${f.icon}" class="w-5 h-5 stroke-[2.2]"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-2 mb-0.5">
+                <span class="text-[11px] font-bold ${z.textClass}">${z.name}</span>
+                <span class="text-[11px] text-slate-300">・${f.name}</span>
+                <span class="text-[11px] text-slate-300 ml-auto">${escapeHtml(String(m.date || '').split(' ')[0])}</span>
+              </div>
+              <p class="text-sm font-semibold text-slate-100 truncate">${title}</p>
+            </div>
+          </div>`;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ===== 新增／編輯表單中的選擇器 =====
+    function renderSelectors() {
+      const pickBase = 'p-2.5 rounded-xl border flex flex-col items-center gap-1 text-xs font-bold transition';
+      const off = 'bg-night-950 text-slate-300 border-night-700 hover:border-night-600';
+      document.getElementById('zone-selector').innerHTML = Object.entries(ZONES).map(([key, z]) => `
+        <button type="button" onclick="selectZone('${key}')" class="${pickBase} ${selectedZone === key ? z.pickActive : off}">
+          <span class="w-5 h-5 rounded-full ${z.dotClass} ${key !== 'peace' ? z.glowClass : ''}"></span>
+          ${z.name}
+          <span class="text-[10px] font-normal opacity-80 text-center leading-tight">${z.def.replace('，', '，<br>')}${key === DEFAULT_ZONE ? '（預設）' : ''}</span>
+        </button>`).join('');
+
+      const feelBase = 'p-2.5 rounded-xl border flex items-center justify-center gap-1.5 text-xs font-bold transition';
+      document.getElementById('feel-selector').innerHTML = Object.entries(FEELS).map(([key, f]) => `
+        <button type="button" onclick="selectFeel('${key}')" class="${feelBase} ${selectedFeel === key ? 'bg-amber-500/15 text-amber-200 border-amber-500/50 ring-2 ring-amber-500/50' : off}">
+          <i data-lucide="${f.icon}" class="w-4 h-4"></i>${f.name}
+        </button>`).join('');
+      lucide.createIcons();
+    }
+    function selectZone(key) { selectedZone = key; renderSelectors(); }
+    function selectFeel(key) { selectedFeel = key; renderSelectors(); }
+
+    function nowString() {
+      return new Date().toLocaleString('zh-TW', { hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function saveMemory(e) {
+      e.preventDefault();
+      const title = document.getElementById('memory-title').value.trim();
+      const text = document.getElementById('memory-text').value.trim();
+      if (!title || !text) return;
+
+      if (editingMemoryId) {
+        const id = editingMemoryId;
+        const memory = memories.find(m => m.id === id);
+        if (memory) {
+          Object.assign(memory, { zone: selectedZone, feel: selectedFeel, title, text, editedDate: nowString() });
+          persistMemories();
+        }
+        editingMemoryId = null;
+        resetForm();
+        document.getElementById('add-modal').classList.add('hidden');
+        renderMemories();
+        if (memory) openViewModal(id);
+        return;
+      }
+
+      const now = Date.now();
+      const newMemory = { id: now.toString(), createdAt: now, zone: selectedZone, feel: selectedFeel, title, text, date: nowString() };
+      memories.unshift(newMemory);
+      persistMemories();
+      resetForm();
+      closeModal();
+      renderMemories();
+    }
+
+    function resetForm() {
+      document.getElementById('memory-title').value = '';
+      document.getElementById('memory-text').value = '';
+      selectedZone = DEFAULT_ZONE;
+      selectedFeel = DEFAULT_FEEL;
+    }
+
+    function setFormMode(isEdit) {
+      document.getElementById('add-modal-heading').textContent = isEdit ? '編輯記憶球' : '封存新記憶球';
+      document.getElementById('add-modal-icon').innerHTML = `<i data-lucide="${isEdit ? 'pencil' : 'plus-circle'}" class="w-5 h-5"></i>`;
+      document.getElementById('submit-btn').textContent = isEdit ? '儲存修改' : '封存記憶';
+    }
+
+    function openModal() {
+      if (editingMemoryId) editingMemoryId = null;
+      resetForm(); // 新增時一律回到預設：趨近、舒服
+      setFormMode(false);
+      renderSelectors();
+      document.getElementById('add-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    function closeModal() {
+      document.getElementById('add-modal').classList.add('hidden');
+      if (editingMemoryId) {
+        const id = editingMemoryId;
+        editingMemoryId = null;
+        resetForm();
+        openViewModal(id);
+      }
+    }
+
+    function editCurrentMemory() {
+      const memory = memories.find(m => m.id === activeMemoryId);
+      if (!memory) return;
+      editingMemoryId = memory.id;
+      closeViewModal();
+      selectedZone = ZONES[memory.zone] ? memory.zone : DEFAULT_ZONE;
+      selectedFeel = FEELS[memory.feel] ? memory.feel : DEFAULT_FEEL;
+      document.getElementById('memory-title').value = memory.title || '';
+      document.getElementById('memory-text').value = memory.text || '';
+      setFormMode(true);
+      renderSelectors();
+      document.getElementById('add-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    // ===== 記憶放映機 =====
+    function openViewModal(id) {
+      const memory = memories.find(m => m.id === id);
+      if (!memory) return;
+      activeMemoryId = id;
+      setDeleteArmed(false);
+      const z = zoneOf(memory), f = feelOf(memory);
+
+      document.getElementById('view-badges').innerHTML = `
+        <span class="px-3 py-1 rounded-full text-xs font-bold border ${z.badge}">${z.name}</span>
+        <span class="px-3 py-1 rounded-full text-xs font-bold border bg-night-800 text-slate-100 border-night-600 flex items-center gap-1">
+          <i data-lucide="${f.icon}" class="w-3.5 h-3.5"></i>${f.name}</span>`;
+
+      const orb = document.getElementById('view-orb');
+      orb.className = `w-24 h-24 rounded-full ${z.orbClass} ${z.glowClass} flex items-center justify-center`;
+      orb.innerHTML = `<i data-lucide="${f.icon}" class="w-10 h-10 opacity-90"></i>`;
+
+      document.getElementById('view-title').textContent = memory.title || '未命名記憶';
+      document.getElementById('view-text').textContent = memory.text || '';
+      document.getElementById('view-date').textContent =
+        `存入時間：${memory.date}` + (memory.editedDate ? `　·　最後編輯：${memory.editedDate}` : '');
+      document.getElementById('view-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeViewModal() {
+      document.getElementById('view-modal').classList.add('hidden');
+      activeMemoryId = null;
+      setDeleteArmed(false);
+    }
+
+    // 刪除要按兩次，避免誤刪
+    function setDeleteArmed(armed) {
+      deleteArmed = armed;
+      document.getElementById('btn-delete-label').textContent = armed ? '再按一次確認' : '刪除';
+      document.getElementById('btn-delete').classList.toggle('!text-red-300', armed);
+      document.getElementById('btn-delete').classList.toggle('!border-red-700', armed);
+    }
+    function deleteCurrentMemory() {
+      if (!activeMemoryId) return;
+      if (!deleteArmed) { setDeleteArmed(true); return; }
+      const id = activeMemoryId;
+      memories = memories.filter(m => m.id !== id);
+      persistMemories();
+      closeViewModal();
+      renderMemories();
+    }
+  </script>
+</div>
+<script>
+  // 註冊 service worker：可離線開啟、可安裝到主畫面
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>
