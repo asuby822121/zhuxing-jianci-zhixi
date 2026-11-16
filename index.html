@@ -75,8 +75,8 @@
     @keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
     /* 記憶球發光 */
-    .glow-red   { box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
-    .glow-blue  { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
+    .glow-yellow { box-shadow: 0 0 15px rgba(250, 204, 21, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
+    .glow-green  { box-shadow: 0 0 15px rgba(132, 204, 22, 0.6), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
     .glow-faded { box-shadow: 0 0 12px rgba(203, 213, 225, 0.18); }
 
     @media (prefers-reduced-motion: reduce) {
@@ -133,7 +133,7 @@
       <div id="memory-container" class="grid grid-cols-4 gap-2 sm:gap-3"></div>
       <div id="empty-state" class="hidden text-center py-12 text-slate-300 space-y-3">
         <div class="w-16 h-16 mx-auto rounded-full bg-night-900/70 border border-night-700 flex items-center justify-center text-slate-400">
-          <i data-lucide="circle-dashed" class="w-8 h-8"></i>
+          <i data-lucide="circle" class="w-8 h-8"></i>
         </div>
         <p class="text-sm">這個分類目前還沒有記憶球</p>
         <p class="text-xs text-slate-400">按右下角的 ＋ 開始記錄</p>
@@ -223,30 +223,30 @@
     const ZONES = {
       approach: {
         name: '趨近', def: '緊',
-        orbClass: 'bg-red-500 text-slate-950', glowClass: 'glow-red',
-        dotClass: 'bg-red-500',
-        textClass: 'text-red-300',
-        tabActive: 'bg-red-500 text-slate-950 shadow shadow-red-500/30',
-        badge: 'bg-red-500/20 text-red-200 border-red-500/40',
-        pickActive: 'bg-red-500/20 text-red-200 border-red-500/50 ring-2 ring-red-500/60'
+        orbClass: 'bg-yellow-500 text-slate-950', glowClass: 'glow-yellow',
+        dotClass: 'bg-yellow-500',
+        textClass: 'text-yellow-300',
+        tabActive: 'bg-yellow-500 text-slate-950 shadow shadow-yellow-500/30',
+        badge: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/40',
+        pickActive: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/50 ring-2 ring-yellow-500/60'
       },
       distance: {
         name: '遠離', def: '有距離、放鬆',
-        orbClass: 'bg-blue-500 text-slate-950', glowClass: 'glow-blue',
-        dotClass: 'bg-blue-500',
-        textClass: 'text-blue-300',
-        tabActive: 'bg-blue-500 text-slate-950 shadow shadow-blue-500/30',
-        badge: 'bg-blue-500/20 text-blue-200 border-blue-500/40',
-        pickActive: 'bg-blue-500/20 text-blue-200 border-blue-500/50 ring-2 ring-blue-500/60'
+        orbClass: 'bg-lime-500 text-slate-950', glowClass: 'glow-green',
+        dotClass: 'bg-lime-500',
+        textClass: 'text-lime-300',
+        tabActive: 'bg-lime-500 text-slate-950 shadow shadow-lime-500/30',
+        badge: 'bg-lime-500/20 text-lime-200 border-lime-500/40',
+        pickActive: 'bg-lime-500/20 text-lime-200 border-lime-500/50 ring-2 ring-lime-500/60'
       },
       peace: {
         name: '平安', def: '不會不見，也不會變出來',
-        orbClass: 'bg-transparent border-2 border-dashed border-slate-300/80 text-slate-200', glowClass: 'glow-faded',
-        dotClass: 'border-2 border-dashed border-slate-300',
+        orbClass: 'bg-transparent border-2 border-slate-300/80 text-slate-200', glowClass: 'glow-faded',
+        dotClass: 'border-2 border-slate-300',
         textClass: 'text-slate-200',
-        tabActive: 'bg-transparent text-slate-100 border-2 border-dashed border-slate-300',
-        badge: 'bg-transparent text-slate-200 border-slate-300/60 border-dashed',
-        pickActive: 'bg-slate-300/10 text-slate-100 border-slate-300 border-dashed ring-2 ring-slate-300/40'
+        tabActive: 'bg-transparent text-slate-100 border-2 border-slate-300',
+        badge: 'bg-transparent text-slate-200 border-slate-300/60',
+        pickActive: 'bg-slate-300/10 text-slate-100 border-slate-300 ring-2 ring-slate-300/40'
       }
     };
     const DEFAULT_ZONE = 'approach';
