@@ -1,16 +1,16 @@
 // 諸行漸次止息 service worker
 // 只快取 App 自己的檔案，讓手機離線也能打開。
 // 不處理、不傳送任何記憶資料（記憶只在 localStorage）。
-const CACHE = 'zhuxing-v6';
+const CACHE = 'zhuxing-v7';
 const FILES = [
   './',
   './index.html',
-  './manifest.webmanifest?v=6',
+  './manifest.webmanifest?v=7',
   './vendor/tailwind-3.4.17.js',
   './vendor/lucide-0.460.0.min.js',
-  './icons/s-icon-192.png',
-  './icons/s-icon-512.png',
-  './icons/s-apple-touch-icon.png'
+  './icons/s2-icon-192.png',
+  './icons/s2-icon-512.png',
+  './icons/s2-apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
