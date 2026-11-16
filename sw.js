@@ -1,7 +1,7 @@
 // 諸行漸次止息 service worker
 // 只快取 App 自己的檔案，讓手機離線也能打開。
 // 不處理、不傳送任何記憶資料（記憶只在 localStorage）。
-const CACHE = 'zhuxing-v8';
+const CACHE = 'zhuxing-v9';
 const FILES = [
   './',
   './index.html',
