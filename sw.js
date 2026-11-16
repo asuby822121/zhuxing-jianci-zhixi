@@ -1,7 +1,7 @@
 // 諸行漸次止息 service worker
 // 只快取 App 自己的檔案，讓手機離線也能打開。
 // 不處理、不傳送任何記憶資料（記憶只在 localStorage）。
-const CACHE = 'zhuxing-v9';
+const CACHE = 'zhuxing-v10';
 const FILES = [
   './',
   './index.html',
@@ -10,7 +10,9 @@ const FILES = [
   './vendor/lucide-0.460.0.min.js',
   './icons/s3-icon-192.png',
   './icons/s3-icon-512.png',
-  './icons/s3-apple-touch-icon.png'
+  './icons/s3-apple-touch-icon.png',
+  './icons/s3-favicon-48.png',
+  './favicon.ico'
 ];
 
 self.addEventListener('install', e => {
