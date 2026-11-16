@@ -1,11 +1,11 @@
 // 諸行漸次止息 service worker
 // 只快取 App 自己的檔案，讓手機離線也能打開。
 // 不處理、不傳送任何記憶資料（記憶只在 localStorage）。
-const CACHE = 'zhuxing-v5';
+const CACHE = 'zhuxing-v6';
 const FILES = [
   './',
   './index.html',
-  './manifest.webmanifest',
+  './manifest.webmanifest?v=6',
   './vendor/tailwind-3.4.17.js',
   './vendor/lucide-0.460.0.min.js',
   './icons/s-icon-192.png',
@@ -14,7 +14,7 @@ const FILES = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
@@ -30,7 +30,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req, { cache: 'no-cache' }) // 一律向網路確認最新版，不用瀏覽器暫存的舊檔
       .then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy));

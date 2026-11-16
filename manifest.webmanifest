@@ -3,6 +3,7 @@
   "short_name": "諸行漸次止息",
   "description": "趨近・遠離・平安 記憶庫。所有記憶只存在這台裝置。",
   "lang": "zh-TW",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
